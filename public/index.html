@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Green Thumb - A plant watering app</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--CSS-->
+    <link rel="stylesheet" type="text/css" media="screen" href="styles.css" />
+    <!--Fonts-->
+    <link href="https://fonts.googleapis.com/css?family=News+Cycle|Poiret+One" rel="stylesheet">
+</head>
+<body>
+    <header role="banner">
+        <div id="header-container">
+            <img src="icons/leaf-logo.png" id="header-logo" class="header">
+            <h3 class="header">gt</h3>
+            <input type="hidden" id="logged-in-username" value="" />
+            <input type="hidden" id="selected-plant" value="" />
+        </div>
+    </header>
+    <main role="main">
+        <section id="landing-page">
+            <div id="welcome-container">
+                <h1>Welcome to<br>Green Thumb!</h1>
+                <p id="intro-text">Green Thumb is an app that helps you track when you water your plants,<br> so you can turn your black thumb into a green thumb!</p>
+                <button id="login-button">Log in</button>
+                <button id="signup-button">Sign up</button>
+            </div>
+            <div id="login-form-container" class="hidden">
+                <h2 class="welcome">Please enter your login info:</h2>
+                <form id="login-form">
+                    <label for="username">username:</label>
+                    <input name="username" type="text" id="loginUsernameInput" value="demoUser" required>
+                    <label for="password">password:</label>
+                    <input name="password" type="password" id="loginUserPwInput" value="demoPass" required>
+                    <div class="form-buttons">
+                        <button type="button" class="form_button landing-back">Back</button>
+                        <button type="submit" class="form_button" id="login-save">Save</button>
+                    </div>
+                </form>
+            </div>
+            <div id="signup-form-container" class="hidden">
+                <h2 class="welcome">Create your account:</h2>
+                <form id="signup-form">
+                    <label for="first-name">First name:</label>
+                    <input name="first-name" type="text" id="signupFirstNameInput" required>
+                    <label for="username">Username:</label>
+                    <input name="username" type="text" id="signupUsernameInput" required>
+                    <label for="password">Password:</label>
+                    <input name="password" type="password" id="signupPasswordInput" required>
+                    <label for="password">Re-enter Password:</label>
+                    <input name="password" type="password" id="signupVerifyPasswordInput" required>
+                    <div class="form-buttons">
+                        <button type="button" class="form_button landing-back">Back</button>
+                        <button type="submit" class="form_button" id="signup-save">Save</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <section id="all-plants-page">
+            <h2 id="all-plants-header">My Plants</h2>
+            <p id="plant-instructions">Select a plant below to see more info</p>
+            <div id="plants-list">
+                <h5 id="no-plants-alert">You don't have any plants yet!<br>Click the plus sign below to add a new plant.</h4>
+                <ul id="display-all-plants">
+                </ul>
+            </div>
+            <div id="add-plant-container">
+                <button id="add-plant-button">
+                    <img src="icons/add-plant-icon.png" id="add-plant-icon">
+                </button>
+            </div>
+        </section>
+        <section id="new-plant-page">
+            <h2>Tell me about your plant:</h2>
+            <form id="new-plant-form">
+                <div id="plant-icon-container">   
+                    <label style="display:block;">Select an icon for your plant:<br></label>
+                    <label for="plant-icon-selector">
+                        <img src="icons/aloe-icon.png" class="select-plant-icon">
+                        <input type="radio" name="plant-icon" id="icons/aloe-icon.png" required>
+                    </label>
+                    <label for="plant-icon-selector">
+                        <img src="icons/echeveria-icon.png" class="select-plant-icon">
+                        <input type="radio" name="plant-icon"  id="icons/echeveria-icon.png">
+                    </label>
+                    <label for="plant-icon-selector">
+                        <img src="icons/paddle-cactus-icon.png" class="select-plant-icon">
+                        <input type="radio" name="plant-icon" id="icons/paddle-cactus-icon.png">
+                    </label>
+                    <label for="plant-icon-selector">
+                        <img src="icons/ficus-icon.png" class="select-plant-icon">
+                        <input type="radio" name="plant-icon" id="icons/ficus-icon.png">
+                    </label>
+                </div>     
+                <label for="plant-type">Plant type:</label>
+                <input name="plant-type" type="text" id="newPlantType" placeholder="Monstera Deliciosa" required>
+                <label for="nickname">Nickname:</label>
+                <input name="nickname" type="text" id="newPlantNickname" placeholder="Bertha" required>
+                <label for="watering-frequency">Watering frequency:</label>
+                <span>every  </span><input name="frequency-number" type="number" min="1" max="10" class="wtr-freq" id="newPlantWaterNumber">
+                <select name="frequency-days" class="wtr-freq" id="newPlantWaterFrequency">
+                    <option value="days">days</option>
+                    <option value="weeks">weeks</option>
+                    <option value="months">months</option>
+                </select> 
+                <label for="notes">Notes:</label>
+                <textarea name="notes" rows="5" cols="30" id="newPlantNotes" placeholder="Loves sunlight and belly rubs"></textarea>
+                <div class="form-buttons">
+                    <button type="button" class="form_button back-allPlants">Back</button>
+                    <button type="submit" class="form_button" id="new-plant-save">Save</button>
+                </div>
+            </form>
+        </section>
+        <section id="individual-plant-page">
+            <img src="icons/paddle-cactus-icon.png" id="individual-plant-icon">
+            <h2 id="individual-plant-nickname"></h2>
+            <div id="plant-info">
+                <h4 class="individual-plant-info">Plant type:</h4>
+                <p class="individual-plant-info" id="individual-plant-type"></p><br>
+                <h4 class="individual-plant-info">Watering frequency:</h4>
+                <p class="individual-plant-info" id="watering-frequency"></p><br>
+                <h4 class="individual-plant-info">Watering history:</h4>
+                <p id="no-dates-alert">No watering dates yet.</p>
+                <div class="water-history">
+                    <ul>
+                    </ul>
+                </div>
+                <h4 class="individual-plant-info">Notes:</h4>
+                <p class="individual-plant-info" id="plant-notes"></p>
+            </div>
+            <div id="individual-plant-buttons">
+                <button type="button" class="back-allPlants">Back</button>
+                <button type="button" id="add-water-button">Add watering date</button>
+                <button type="button" id="individual-plant-edit">Edit</button>
+            </div>
+        </section>
+        <section id="edit-plant-page">
+            <h2>Edit</h2>
+            <form id="edit-plant-form">
+                <label id="select-icon-label">Select an icon for your plant:<br></label>
+                <div id="edit-plant-icon-container">   
+                    <label for="edit-plant-icon-selector">
+                        <img src="icons/aloe-icon.png" class="select-plant-icon">
+                        <input type="radio" name="plant-icon" checked="checked" class="icons/aloe-icon.png">
+                    </label>
+                    <label for="edit-plant-icon-selector">
+                        <img src="icons/echeveria-icon.png" class="select-plant-icon">
+                        <input type="radio" name="plant-icon" class="icons/echeveria-icon.png">
+                    </label>
+                    <label for="edit-plant-icon-selector">
+                        <img src="icons/paddle-cactus-icon.png" class="select-plant-icon">
+                        <input type="radio" name="plant-icon" class="icons/paddle-cactus-icon.png">
+                    </label>
+                    <label for="edit-plant-icon-selector">
+                        <img src="icons/ficus-icon.png" class="select-plant-icon">
+                        <input type="radio" name="plant-icon" class="icons/ficus-icon.png">
+                    </label>
+                </div>     
+                <label for="plant-type">Plant type:</label>
+                <input name="plant-type" type="text" id="edit-individual-plant-type" placeholder="Christmas Cactus">
+                <label for="nickname">Nickname:</label>
+                <input name="nickname" type="text" id="edit-individual-plant-nickname" placeholder="Greta">
+                <label for="watering-frequency">Watering frequency:</label>
+                <span>  every  </span><input name="frequency-number" id="edit-water-number" type="number" min="1" max="10" class="wtr-freq">
+                <select name="frequency-days" class="wtr-freq" id="edit-watering-frequency">
+                    <option value="days">days</option>
+                    <option value="weeks">weeks</option>
+                    <option value="months">months</option>
+                </select>  
+                <label for="notes">Notes:</label>
+                <textarea name="notes" id="edit-plant-notes" rows="5" cols="30"></textarea>
+                <div class="form-buttons">
+                    <button type="button" class="form_button back-indivPlant">Back</button>
+                    <button type="submit" class="form_button" id="edit-plant-save">Save</button>
+                    <button type="button" id="delete-plant">Delete</button>
+                </div>
+            </form>
+        </section>
+        <section id="water-plant-page">
+            <img src = "icons/watering-can.png" id="watering-can">
+            <h2>When did you water<br>your plant?</h2>
+            <form id="new-plant-water-form">
+                <input name="last-water-date" type="date" id="input-water-date" required>
+                <div class="form-buttons">
+                    <button type="button" class="form_button back-indivPlant">Back</button>
+                    <button type="submit" class="form_button" id="new-water-save">Save</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="client.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.23.0/moment.min.js" type="text/javascript"></script>
+</body>
+</html>
