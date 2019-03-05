@@ -67,11 +67,11 @@ if (require.main === module) {
 //POST
 
 //User Login
-app.post('/users/login', (req, res) => {
-  console.log(req.body.username, req.body.password);
+app.post('/auth/login', (req, res) => {
+  console.log(req.body.email, req.body.password);
   User 
     .findOne({
-      username: req.body.username
+      email: req.body.email
     }, function(err, items) {
       if (err) {
         return res.status(500).json({
@@ -79,9 +79,9 @@ app.post('/users/login', (req, res) => {
         });
       }
       if (!items) {
-        //bad username
+        //bad email
         return res.status(401).json({
-          message: "Username not found"
+          message: "User not found"
         });
       } else {
         items.validatePassword(req.body.password, function(err, isValid) {
