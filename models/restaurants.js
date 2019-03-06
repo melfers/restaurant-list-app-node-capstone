@@ -3,19 +3,14 @@
 const mongoose = require('mongoose');
 
 const restaurantSchema = mongoose.Schema({
-    id: String,
-    listsOn: {
-        type: String
-    },
+    listId: String,
     name: String,
     featured_image: String,
     location: {
         address: String,
         locality: String
     },
-    cuisines: {
-        type: string
-    },
+    cuisines: String,
     userNotes: String
 });
 

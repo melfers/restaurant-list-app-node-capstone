@@ -1,6 +1,6 @@
 const User = require('./models/users');
-const Plant = require('./models/plants');
-const History = require('./models/history');
+const List = require('./models/lists');
+const Restaurant = require('./models/restaurants');
 const express = require('express');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
@@ -39,9 +39,6 @@ function runServer(databaseUrl, port = PORT) {
     });
   }
 
-// like `runServer`, this function also needs to return a promise.
-// `server.close` does not return a promise on its own, so we manually
-// create one.
 function closeServer() {
     return mongoose.disconnect().then(() => {
       return new Promise((resolve, reject) => {
@@ -56,17 +53,13 @@ function closeServer() {
     });
   }
 
-// if server.js is called directly (aka, with `node server.js`), this block
-// runs. but we also export the runServer command so other code (for instance, test code) can start the server as needed.
 if (require.main === module) {
   runServer(DATABASE_URL).catch(err => console.error(err));
 }
 
 //----------User Endpoints----------
 
-//POST
-
-//User Login
+//Existing user Login
 app.post('/auth/login', (req, res) => {
   console.log(req.body.email, req.body.password);
   User 
@@ -101,13 +94,13 @@ app.post('/auth/login', (req, res) => {
     });
 });
 
-//Create new user
-app.post('/users/signup', (req, res) => {
-  let firstName = req.body.firstName;
-  let username = req.body.username;
+//Create new user on signup
+app.post('/auth/signup', (req, res) => {
+  let name = req.body.name;
+  let email = req.body.email;
   let password = req.body.password;
 
-  username = username.trim();
+  email = email.trim();
   password = password.trim();
 
   //Create encryption key
@@ -124,10 +117,9 @@ app.post('/users/signup', (req, res) => {
                   message: 'Password encryption failed'
               });
           }
-
           User.create({
-              firstName,
-              username,
+              name,
+              email,
               password: hash
           }, (err, item) => {
               if (err) {
@@ -144,142 +136,95 @@ app.post('/users/signup', (req, res) => {
 
 });
 
-//Verify no plant exists with input nickname
-app.get('/verifyNickname/:username/:inputNickname', (req, res) => {
-  console.log(req.params.inputNickname);
-  Plant
-    .find({
-      username: req.params.username,
-      nickname: req.params.inputNickname
+//----------List Endpoints----------
+
+//Get all lists for a user
+app.get('/lists/user/:id', (req, res) => {
+  console.log(req.params.user);
+  List
+    .find({user: req.params.user})
+    .then(lists => {
+        console.log(lists);
+        let listOutput = [];
+        lists.map(list => {
+          listOutput.push(list);
+        });
+        res.json(listOutput);
+      })
+    .catch(err => {
+      console.err(err);
+      res.status(500).json({ error: 'Something went wrong'});
+    });
+});
+
+//Create new list
+app.post('/lists/user/addList', (req, res) => {
+  let user = req.body.user;
+  let name = req.body.name;
+  let description = req.body.description;
+  let index = req.body.index;
+
+  name = name.trim();
+  console.log(
+    req.body.user,
+    req.body.name,
+    req.body.description, 
+    req.body.index
+    );
+
+  List
+    .create({
+      user,
+      name,
+      description,
+      index
+    }, (err, item) => {
+      if(err) {
+        return res.status(500).json({
+          message: 'Internal server error'
+        });
+      }
+      if (item) {
+        console.log(`Created a new List named ${name} to ${user}'s account`);
+        return res.json(item);
+      }
+    });
+});
+
+//Delete a list
+app.delete('/lists/user/listname/:listId', (req, res) => {
+  console.log(req.params.listId);
+
+  List
+    .findOneAndDelete({
+      user: req.params.user,
+      _id: req.params.listId
     })
-    .then(result => {
-        console.log(result.length);
-        res.json({result});
-      })
+    .then(() => {
+      console.log(`${req.params.listId} was deleted`);
+      res.status(204).json({ message: `${req.params.listId} was deleted`});
+    })
     .catch(err => {
-      console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
-    });
-})
-
-//Create new plant
-app.post('/users/plants/create', (req, res) => {
-  let username = req.body.username;
-  let icon = req.body.icon;
-  let plantType = req.body.plantType;
-  let nickname = req.body.nickname;
-  let waterNumber = req.body.waterNumber;
-  let waterFrequency = req.body.waterFrequency;
-  let waterHistory = req.body.waterHistory;
-  let notes = req.body.notes;
-
-  nickname = nickname.trim();
-  console.log(
-    req.body.username,
-    req.body.icon,
-    req.body.plantType, 
-    req.body.nickname, 
-    req.body.waterNumber, 
-    req.body.waterFrequency, 
-    req.body.waterHistory,
-    req.body.notes
-    );
-
-  Plant
-    .create({
-      username,
-      icon,
-      plantType,
-      nickname,
-      waterNumber,
-      waterFrequency,
-      waterHistory,
-      notes
-    }, (err, item) => {
-      if(err) {
-        return res.status(500).json({
-          message: 'Internal server error'
-        });
-      }
-      if (item) {
-        console.log(`Added a ${plantType} named ${nickname} to ${username}'s account`);
-        return res.json(item);
-      }
-    });
-});
-
-//Create new water history
-app.post('/users/plants/history', (req, res) => {
-  let plant_id = req.body.plant_id;
-  let waterDate = req.body.waterDate;
-
-  console.log(
-    req.body.plant_id,
-    req.body.waterDate
-    );
-
-  History
-    .create({
-      plant_id,
-      waterDate
-    }, (err, item) => {
-      if(err) {
-        return res.status(500).json({
-          message: 'Internal server error'
-        });
-      }
-      if (item) {
-        return res.json(item);
-      }
-    });
-});
-
-//Get water history for individual plant
-app.get('/waterHistory/:plant_id', (req, res) => {
-  console.log(req.params.plant_id);
-  History
-    .find({plant_id: req.params.plant_id})
-    .sort({waterDate: -1})
-    .then(history => {
-        console.log(history);
-        res.json(history);
+      console.error(err);
+      res.status(500).json({
+        message: 'Internal server error deleting entry'
       })
-    .catch(err => {
-      console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
     });
 });
 
-//Show all plants for a user
-app.get('/all-plants/:username', (req, res) => {
-  console.log(req.params.username);
-  Plant
-    .find({username: req.params.username})
-    .then(plants => {
-        console.log(plants);
-        let plantOutput = [];
-        plants.map(plant => {
-          plantOutput.push(plant);
-        });
-        res.json(plantOutput);
-      })
-    .catch(err => {
-      console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
-    });
-});
+//----------Restaurant Endpoints----------
 
-//View individual plant info
-app.get('/individual-plant/:username/:selectedPlant', (req, res) => {
-  console.log(req.params.selectedPlant);
-  Plant
+//View individual restaurant info
+app.get('/lists/user/listname/:id/:restaurantId', (req, res) => {
+  console.log(req.params.restaurantId);
+  Restaurant
     .findOne({
-      username: req.params.username,
-      _id: req.params.selectedPlant
+      listId: req.params.listId,
+      _id: req.params.restaurantId
     })
-    .then(plant => {
-      console.log(plant);
-      res.json(plant);
+    .then(restaurant => {
+      console.log(restaurant);
+      res.json(estaurant);
     })
     .catch(err => {
       console.err(err);
@@ -287,45 +232,35 @@ app.get('/individual-plant/:username/:selectedPlant', (req, res) => {
     });
 });
 
-//Add new water date for individual plant
-app.put('/add-water-date/:username/:selectedPlant', (req, res) => {
-  console.log(req.params.selectedPlant, req.body.newWaterDate);
-  const formattedWaterDate = (moment(req.body.newWaterDate).format('MM/DD/YYYY'));
+//Edit user notes for an individual restaurant
+app.put('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
+  console.log(req.params.restaurantId, req.body.userNotes);
 
-  Plant
-    .update({
-      username: req.params.username,
-      _id: req.params.selectedPlant
-    }, { $set: {
-      waterHistory: formattedWaterDate
+  Restaurant
+    .update({ $set: {
+      userNotes: req.body.userNotes
     }
   })
-    .then(updatedPlant => {
+    .then(updatedRestaurant => {
       res.status(200).json({
-        username: updatedPlant.username,
-        plantType: updatedPlant.plantType,
-        nickname: updatedPlant.nickname, 
-        waterNumber: updatedPlant.waterNumber,
-        waterFrequency: updatedPlant.waterFrequency,
-        waterHistory: updatedPlant.waterHistory,
-        notes: updatedPlant.notes
+        _id: updatedRestaurant._id,
+        userNotes: updatedRestaurant.userNotes
       });
     })
     .catch(err => res.status(500).json({ message: err}));
   });
 
-//Delete an individual plant
-app.delete('/delete-plant/:username/:selectedPlant', (req, res) => {
-  console.log(req.params.selectedPlant);
+//Remove an individual restaurant from a list
+app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
+  console.log(req.params.restaurantId);
 
-  Plant
+  Restaurant
     .findOneAndDelete({
-      username: req.params.username,
-      _id: req.params.selectedPlant
+      _id: req.params.restaurantId
     })
     .then(() => {
-      console.log(`${req.params.selectedPlant} was deleted`);
-      res.status(204).json({ message: `${req.params.selectedPlant} was deleted`});
+      console.log(`${req.params.restaurantId} was deleted`);
+      res.status(204).json({ message: `${req.params.restaurantId} was deleted`});
     })
     .catch(err => {
       console.error(err);

@@ -2,17 +2,13 @@
 
 const mongoose = require('mongoose');
 
-const listSchema = mongoose.Schema({
-    list_id: String, 
+const ListSchema = mongoose.Schema({
     user: String,
     name: String,
     description: String,
-    index: Number,
-    restaurants: {
-        type: Array
-    }
+    index: Number
 });
 
-const History = mongoose.model('List', listSchema);
+const List = mongoose.model('List', ListSchema);
 
-module.exports = History;
+module.List = List;
