@@ -214,6 +214,25 @@ app.delete('/lists/user/listname/:listId', (req, res) => {
 
 //----------Restaurant Endpoints----------
 
+//Get individual list of restaurants
+app.get('/lists/user/listname/:id', (req, res) => {
+  console.log(req.params.listId);
+  Restaurant
+    .find({listId: req.params.listId})
+    .then(restaurants => {
+        console.log(restaurants);
+        let listOutput = [];
+        lists.map(list => {
+          listOutput.push(restaurant);
+        });
+        res.json(listOutput);
+      })
+    .catch(err => {
+      console.err(err);
+      res.status(500).json({ error: 'Something went wrong'});
+    });
+});
+
 //View individual restaurant info
 app.get('/lists/user/listname/:id/:restaurantId', (req, res) => {
   console.log(req.params.restaurantId);
@@ -237,7 +256,9 @@ app.put('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
   console.log(req.params.restaurantId, req.body.userNotes);
 
   Restaurant
-    .update({ $set: {
+  .update({
+    _id: req.params.restaurantId
+  }, { $set: { 
       userNotes: req.body.userNotes
     }
   })
@@ -269,70 +290,5 @@ app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
       })
     });
 });
-
-//Populate edit individual plant
-app.get('/edit-individual-plant/:username/:selectedPlant', (req, res) => {
-  console.log(req.params.selectedPlant);
-  Plant
-    .findOne({
-      username: req.params.username,
-      _id: req.params.selectedPlant
-    })
-    .then(plant => {
-      console.log(plant);
-      res.json(plant);
-    })
-    .catch(err => {
-      console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
-    });
-})
-
-//Save edits to individual plant
-app.put('/save-edit-individual-plant/:username/:selectedPlant', (req, res) => {
-  console.log(req.params.username, req.params.selectedPlant);
-  Plant
-    .update({
-      username: req.params.username,
-      _id: req.params.selectedPlant
-    }, { $set: { 
-        icon: req.body.editedIcon,
-        plantType: req.body.editedPlantType,
-        nickname: req.body.editedNickname,
-        waterNumber: req.body.editedWaterNumber,
-        waterFrequency: req.body.editedWaterFrequency,
-        notes: req.body.editedNotes
-      }
-    })
-    .then(updatedPlant => {
-      res.status(200).json({
-        username: updatedPlant.username,
-        icon: updatedPlant.icon,
-        plantType: updatedPlant.plantType,
-        nickname: updatedPlant.nickname, 
-        waterNumber: updatedPlant.waterNumber,
-        waterFrequency: updatedPlant.waterFrequency,
-        notes: updatedPlant.notes
-      });
-    })
-    .catch(err => res.status(500).json({ message: err}));
-})
-
-//Check signup info to ensure unique username
-app.get('/users/verifySignup/:username', (req, res) => {
-  console.log(req.params.username);
-  User
-    .find({
-      username: req.params.username
-    })
-    .then(result => {
-        console.log(result.length);
-        res.json({result});
-      })
-    .catch(err => {
-      console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
-    });
-})
 
 module.exports = { app, runServer, closeServer };
