@@ -6,15 +6,18 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const app = express();
 const bcrypt = require('bcryptjs');
-const moment = require('moment');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 
+app.use(cors());
+app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(express.json());
-app.use(function(req, res, next) {
+/*app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
-});
+});*/
 
 mongoose.Promise = global.Promise;
 
