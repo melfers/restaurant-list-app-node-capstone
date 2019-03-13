@@ -291,4 +291,31 @@ app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
     });
 });
 
+//----------Search Endpoint----------
+app.get('/search/:term', (req, res) => {
+  const term = req.params.term;
+  const cityId = req.params.cityId;
+  console.log(term);
+  request(
+    "https://developers.zomato.com/api/v2.1/search",
+    {
+      json: true,
+      qs: {
+        entity_id: cityId,
+        entity_type: city,
+        q: term
+      }
+    },
+    function(err, response, body) {
+      if (!err && response.statusCode === 200) {
+        console.log("searching for restaurants!");
+        return res.json({ response });
+      } else {
+        console.log(err);
+        res.status(400).json(err);
+      }
+    }
+  );
+});
+
 module.exports = { app, runServer, closeServer };
