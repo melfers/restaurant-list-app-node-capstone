@@ -10,6 +10,11 @@ const moment = require('moment');
 
 app.use(express.static('public'));
 app.use(express.json());
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 mongoose.Promise = global.Promise;
 
@@ -117,6 +122,7 @@ app.post('/auth/signup', (req, res) => {
                   message: 'Password encryption failed'
               });
           }
+          console.log(User);
           User.create({
               name,
               email,

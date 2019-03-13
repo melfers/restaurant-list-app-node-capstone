@@ -8,17 +8,17 @@ const UserSchema = new mongoose.Schema({
         type: String,
         trim: true,
         unique: false,
-        required: true
+        required: false
     },
     email: {
         type: String,
-        unique: true,
-        required: true
+        unique: false,
+        required: false
     },
     password: {
         type: String, 
-        trim: true,
-        required: true
+        trim: false,
+        required: false
     }
 });
 
@@ -45,4 +45,4 @@ UserSchema.pre("save", async function(next) {
 
 const User = mongoose.model('User', UserSchema);
 
-exports.User = User;
+module.exports = User;
