@@ -11,16 +11,12 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("./config");
+const passport = require("passport");
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(express.json());
-/*app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});*/
 
 mongoose.Promise = global.Promise;
 
@@ -88,10 +84,9 @@ app.post('/auth/login', (req, res) => {
           message: "User not found"
         });
       } else {
-        items.validatePassword(req.body.password, function(err, isValid) {
-          if (err) {
-            console.log('Sorry, we couldn\'t validate your email or password.')
-          }
+        items.validatePassword(req.body.password)
+        .then(function(isValid) {
+          console.log(arguments);
           if (!isValid) {
             return res.status(401).json({
               message: 'Not found'
@@ -104,6 +99,27 @@ app.post('/auth/login', (req, res) => {
       };
     });
 });
+/*
+app.post("/auth/login", function(req, res, next) {
+  passport.authenticate("login", { session: false }, (err, user, info) => {
+    console.log(user);
+    if (err || !user) {
+      res.statusMessage = info.message;
+      return res.status(400).json(res.statusMessage);
+    }
+
+    req.login(user, { session: false }, err => {
+      if (err) {
+        res.status(400).json(err);
+      }
+
+      const body = user.serialize();
+      // Generate jwt with the contents of user object
+      const token = jwt.sign(body, JWT_SECRET);
+      return res.json({ token });
+    });
+  })(req, res);
+});*/
 
 //Create new user on signup
 app.post('/auth/signup', (req, res) => {
