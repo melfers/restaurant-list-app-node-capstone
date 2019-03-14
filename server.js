@@ -103,46 +103,68 @@ app.post('/auth/login', (req, res) => {
 });
 
 //Create new user on signup
-app.post('/auth/signup', (req, res) => {
-  let name = req.body.name;
-  let email = req.body.email;
-  let password = req.body.password;
 
-  email = email.trim();
-  password = password.trim();
+app.post("/auth/signup", (req, res) => {
+  const name = req.body.name;
+  const email = req.body.email;
+  const password = req.body.password;
 
-  //Create encryption key
-  bcrypt.genSalt(10, (err, salt) => {
-      if (err) {
-          return res.status(500).json({
-              message: 'Encryption key creation failed'
-          });
+  User.create({
+    name,
+    email,
+    password
+  })
+    .then(user => {
+      const body = user.serialize();
+      // Generate jwt with the contents of user object
+      const token = jwt.sign(body, JWT_SECRET);
+      return res.json({ token });
+    })
+    .catch(err => {
+      if (err.code === 11000) {
+        res.statusMessage = "Username or Email already exists.";
+        return res.status(400).json(res.statusMessage);
       }
-      //encrypt password using key 
-      bcrypt.hash(password, salt, (err, hash) => {
-          if (err) {
-              return res.status(500).json({
-                  message: 'Password encryption failed'
-              });
-          }
-          console.log(User);
-          User.create({
-              name,
-              email,
-              password: hash
-          }, (err, item) => {
-              if (err) {
-                  return res.status(500).json({
-                      message: 'Create new user failed'
-                  });
-              }
-              if (item) {
-                  return res.status(200).json(item);
-              }
-          });
-      });
-  });
+    });
+});
 
+//For persisting user login
+app.get("/auth/userLoggedIn", function(req, res) {
+  Logged.find({})
+    .then(users => {
+      res.json({loggedIn: users});
+    })
+    .catch(err => {
+      return res.status(400).json(res.statusMessage);
+    });
+});
+
+app.post("/auth/userLoggedIn", function(req, res) {
+  Logged.create({
+    usersLoggedIn: req.body.user
+  })
+  .then(user => {
+    Logged.find({})
+      .then(users => {
+        res.json({loggedIn: users});
+      });
+  })
+  .catch(err => {
+    return res.status(400).json(res.statusMessage);
+  });
+});
+
+app.delete("/auth/userLoggedIn", function(req, res) {
+  console.log(req.body.user);
+  Logged.deleteMany({
+    usersLoggedIn: req.body.user
+  })
+  .then(user => {
+    console.log(`Deleted ${user}!`);
+  })
+  .catch(err => {
+    return res.status(400).json(res.statusMessage);
+  });
 });
 
 //----------List Endpoints----------
