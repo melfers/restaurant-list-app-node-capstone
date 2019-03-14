@@ -8,4 +8,4 @@ const userLoggedSchema = new mongoose.Schema({
 
 const Logged = mongoose.model("session", userLoggedSchema);
 
-exports.Logged = Logged;
+module.exports = Logged;

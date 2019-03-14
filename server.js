@@ -8,6 +8,8 @@ const app = express();
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("./config");
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -103,29 +105,48 @@ app.post('/auth/login', (req, res) => {
 });
 
 //Create new user on signup
+app.post('/auth/signup', (req, res) => {
+  let name = req.body.name;
+  let email = req.body.email;
+  let password = req.body.password;
 
-app.post("/auth/signup", (req, res) => {
-  const name = req.body.name;
-  const email = req.body.email;
-  const password = req.body.password;
+  email = email.trim();
+  password = password.trim();
 
-  User.create({
-    name,
-    email,
-    password
-  })
-    .then(user => {
-      const body = user.serialize();
-      // Generate jwt with the contents of user object
-      const token = jwt.sign(body, JWT_SECRET);
-      return res.json({ token });
-    })
-    .catch(err => {
-      if (err.code === 11000) {
-        res.statusMessage = "Username or Email already exists.";
-        return res.status(400).json(res.statusMessage);
+  //Create encryption key
+  bcrypt.genSalt(10, (err, salt) => {
+      if (err) {
+          return res.status(500).json({
+              message: 'Encryption key creation failed'
+          });
       }
-    });
+      //encrypt password using key 
+      bcrypt.hash(password, salt, (err, hash) => {
+          if (err) {
+              return res.status(500).json({
+                  message: 'Password encryption failed'
+              });
+          }
+          User.create({
+              name,
+              email,
+              password: hash
+          }, (err, user) => {
+              if (err) {
+                  return res.status(500).json({
+                      message: 'Create new user failed'
+                  });
+              }
+              if (user) {
+                console.log(user);
+                const body = user.serialize();
+                // Generate jwt with the contents of user object
+                const token = jwt.sign(body, JWT_SECRET);
+                return res.json({ token });
+              }
+          });
+      });
+  });
 });
 
 //For persisting user login
