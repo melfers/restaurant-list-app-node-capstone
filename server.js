@@ -1,6 +1,7 @@
 const User = require('./models/users');
 const List = require('./models/lists');
 const Restaurant = require('./models/restaurants');
+const Logged = require('./models/userLoggedIn');
 const express = require('express');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
@@ -160,7 +161,8 @@ app.get("/auth/userLoggedIn", function(req, res) {
     });
 });
 
-app.post("/auth/userLoggedIn", function(req, res) {
+app.post("/auth/userLoggedIn", (req, res) => {
+  console.log(req.body.user);
   Logged.create({
     usersLoggedIn: req.body.user
   })
