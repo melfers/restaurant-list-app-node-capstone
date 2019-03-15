@@ -37,13 +37,23 @@ UserSchema.pre("save", async function(next) {
     };
   };
   
-  UserSchema.methods.validatePassword = async function (password) {
+  /*UserSchema.methods.validatePassword = async function (password) {
       const user = this;
-      console.log(password);
-      console.log(user.password);
+      console.log(await bcrypt.hash(password, 10), user.password);
       const isMatch = await bcrypt.compare(password, user.password);
       return isMatch;
-  };
+  };*/
+
+  UserSchema.methods.validatePassword = function(password, callback) {
+    bcrypt.compare(password, this.password, (err, isValid) => {
+        if (err) {
+            callback(err);
+            return;
+        }
+        callback(null, isValid);
+    });
+};
+
 
 const User = mongoose.model('User', UserSchema);
 

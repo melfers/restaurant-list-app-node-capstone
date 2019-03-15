@@ -10,8 +10,9 @@ const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("./config");
+const { JWT_SECRET, PORT, DATABASE_URL } = require("./config");
 const passport = require("passport");
+const BasicStrategy = require('passport-http').BasicStrategy;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -19,8 +20,6 @@ app.use(express.static('public'));
 app.use(express.json());
 
 mongoose.Promise = global.Promise;
-
-const {PORT, DATABASE_URL} = require('./config');
 
 
 // ---------- Run/Close Server --------------------
@@ -68,7 +67,7 @@ if (require.main === module) {
 
 //Existing user Login
 app.post('/auth/login', (req, res) => {
-  console.log(req.body.email, req.body.password);
+  //console.log(req.body.email, req.body.password);
   User 
     .findOne({
       email: req.body.email
@@ -80,13 +79,14 @@ app.post('/auth/login', (req, res) => {
       }
       if (!items) {
         //bad email
+        console.log('bad email');
         return res.status(401).json({
           message: "User not found"
         });
-      } else {
+      } else {/*
         items.validatePassword(req.body.password)
         .then(function(isValid) {
-          console.log(arguments);
+          console.log(isValid);
           if (!isValid) {
             return res.status(401).json({
               message: 'Not found'
@@ -96,7 +96,22 @@ app.post('/auth/login', (req, res) => {
             return res.json(items);
           }
         });
-      };
+      */
+     items.validatePassword(req.body.password, function(err, isValid) {
+      console.log(isValid, err);
+      if (err) {
+          console.log('There was an error validating email or password.');
+      }
+      if (!isValid) {
+          return res.status(401).json({
+              message: "Is not valid"
+          });
+      } else {
+          console.log("user logged in successfully");
+          return res.json(items);
+      }
+  });
+    };
     });
 });
 /*
@@ -156,10 +171,11 @@ app.post('/auth/signup', (req, res) => {
               }
               if (user) {
                 console.log(user);
-                const body = user.serialize();
+                /*const body = user.serialize();
                 // Generate jwt with the contents of user object
                 const token = jwt.sign(body, JWT_SECRET);
-                return res.json({ token });
+                return res.json({ token });*/
+                return res.json(user);
               }
           });
       });
