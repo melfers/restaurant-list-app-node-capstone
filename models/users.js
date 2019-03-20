@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
         trim: true,
@@ -23,28 +23,28 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Pre-hook to hash password
-UserSchema.pre("save", async function(next) {
+/*userSchema.pre("save", async function(next) {
     const hash = await bcrypt.hash(this.password, 10);
     this.password = hash;
     next();
-  });
+});
   
-  UserSchema.methods.serialize = function () {
+userSchema.methods.serialize = function () {
     return {
       id: this._id,
       email: this.email,
       name: this.name
     };
-  };
+};
   
-  /*UserSchema.methods.validatePassword = async function (password) {
+userSchema.methods.validatePassword = async function (password) {
       const user = this;
       console.log(await bcrypt.hash(password, 10), user.password);
       const isMatch = await bcrypt.compare(password, user.password);
       return isMatch;
-  };*/
+};*/
 
-  UserSchema.methods.validatePassword = function(password, callback) {
+userSchema.methods.validatePassword = function(password, callback) {
     bcrypt.compare(password, this.password, (err, isValid) => {
         if (err) {
             callback(err);
@@ -55,6 +55,6 @@ UserSchema.pre("save", async function(next) {
 };
 
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

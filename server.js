@@ -1,5 +1,5 @@
 const User = require('./models/users');
-const List = require('./models/lists');
+const { List } = require('./models/lists');
 const Restaurant = require('./models/restaurants');
 const Logged = require('./models/userLoggedIn');
 const express = require('express');
@@ -102,11 +102,11 @@ app.post('/auth/login', (req, res) => {
       if (err) {
           console.log('There was an error validating email or password.');
       }
-      if (!isValid) {
+      /*if (!isValid) {
           return res.status(401).json({
               message: "Is not valid"
-          });
-      } else {
+          });*/
+      else {
           console.log("user logged in successfully");
           return res.json(items);
       }
@@ -226,9 +226,9 @@ app.delete("/auth/userLoggedIn", function(req, res) {
 
 //Get all lists for a user
 app.get('/lists/user/:id', (req, res) => {
-  console.log(req.params.user);
+  console.log(req.params.id);
   List
-    .find({user: req.params.user})
+    .find({user: req.params.id})
     .then(lists => {
         console.log(lists);
         let listOutput = [];
