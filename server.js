@@ -294,7 +294,7 @@ app.get('/lists/user/addList/verify/:user/:name', (req, res) => {
 })
 
 //Create new list
-app.post('/lists/user/addList', (req, res) => {
+app.post('/user/add/list', (req, res) => {
   let user = req.body.user;
   let name = req.body.name;
   let description = req.body.description;
@@ -347,7 +347,7 @@ app.delete('/lists/user/delete/:listId', (req, res) => {
 //----------Restaurant Endpoints----------
 
 //Get individual list of restaurants
-app.get('/lists/user/listname/:id', (req, res) => {
+app.get('/user/singleList/:userId/:listId', (req, res) => {
   console.log(req.params.listId);
   Restaurant
     .find({listId: req.params.listId})
