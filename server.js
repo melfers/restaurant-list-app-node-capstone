@@ -13,6 +13,10 @@ const jwt = require("jsonwebtoken");
 const { JWT_SECRET, PORT, DATABASE_URL } = require("./config");
 const passport = require("passport");
 const BasicStrategy = require('passport-http').BasicStrategy;
+const unirest = require('unirest');
+const https = require('https');
+const http = require('http');
+const events = require('events');
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -62,6 +66,34 @@ function closeServer() {
 if (require.main === module) {
   runServer(DATABASE_URL).catch(err => console.error(err));
 }
+
+// external API call
+var getFromZomato = function (cityId, term) {
+  var emitter = new events.EventEmitter();
+  //https://developers.zomato.com/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}
+  var options = {
+      host: 'developers.zomato.com',
+      path: `/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}`,
+      method: 'GET',
+      headers: {
+          'Authorization': "2ec54e7675164eec06fdfa23d608c529",
+          'Content-Type': "application/json",
+          'Port': 443,
+          'User-Agent': 'Paw/3.1.2 (Macintosh; OS X/10.12.5) GCDHTTPRequest',
+          'user-key': '2ec54e7675164eec06fdfa23d608c529'
+      }
+  };
+
+  https.get(options, function (res) {
+      res.on('data', function (chunk) {
+        let jsonFormattedResults = JSON.parse(chunk);
+        emitter.emit('end', jsonFormattedResults);
+      });
+  }).on('error', function (e) {
+      emitter.emit('error', e);
+  });
+  return emitter;
+};
 
 //----------User Endpoints----------
 
@@ -243,27 +275,42 @@ app.get('/lists/user/:id', (req, res) => {
     });
 });
 
+//Verify no list exists with input name
+app.get('/lists/user/addList/verify/:user/:name', (req, res) => {
+  console.log(req.params.user, req.params.name);
+  List
+    .findOne({
+      user: req.params.user,
+      name: req.params.name
+    })
+    .then(result => {
+      console.log(result);
+      res.json({result});
+      })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({ error: 'Something went wrong'});
+    });
+})
+
 //Create new list
 app.post('/lists/user/addList', (req, res) => {
   let user = req.body.user;
   let name = req.body.name;
   let description = req.body.description;
-  let index = req.body.index;
 
   name = name.trim();
   console.log(
     req.body.user,
     req.body.name,
-    req.body.description, 
-    req.body.index
+    req.body.description
     );
 
   List
     .create({
       user,
       name,
-      description,
-      index
+      description
     }, (err, item) => {
       if(err) {
         return res.status(500).json({
@@ -278,9 +325,8 @@ app.post('/lists/user/addList', (req, res) => {
 });
 
 //Delete a list
-app.delete('/lists/user/listname/:listId', (req, res) => {
+app.delete('/lists/user/delete/:listId', (req, res) => {
   console.log(req.params.listId);
-
   List
     .findOneAndDelete({
       user: req.params.user,
@@ -319,8 +365,51 @@ app.get('/lists/user/listname/:id', (req, res) => {
     });
 });
 
-//View individual restaurant info
-app.get('/lists/user/listname/:id/:restaurantId', (req, res) => {
+//View individual restaurant info from list
+app.get('/lists/user/listname/:listId/:restaurantId', (req, res) => {
+  console.log(req.params.restaurantId);
+  Restaurant
+    .findOne({
+      listId: req.params.listId,
+      _id: req.params.restaurantId
+    })
+    .then(restaurant => {
+      console.log(restaurant);
+      res.json(estaurant);
+    })
+    .catch(err => {
+      console.err(err);
+      res.status(500).json({ error: 'Something went wrong'});
+    });
+});
+
+//Add a restaurant to a list
+app.post('/search/:restaurantName/addToList', (req, res) => {
+  let name = req.params.name;
+  let list = req.params.listId;
+
+  console.log(name, list);
+
+  Restaurant
+    .create({
+      user,
+      name,
+      description
+    }, (err, item) => {
+      if(err) {
+        return res.status(500).json({
+          message: 'Internal server error'
+        });
+      }
+      if (item) {
+        console.log(`Created a new List named ${name} to ${user}'s account`);
+        return res.json(item);
+      }
+    });
+});
+
+//View individual restaurant info from search
+app.get('/search/:restaurantName', (req, res) => {
   console.log(req.params.restaurantId);
   Restaurant
     .findOne({
@@ -378,30 +467,21 @@ app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
 });
 
 //----------Search Endpoint----------
-app.get('/search/:term', (req, res) => {
+app.get('/search/:term/:cityId', (req, res) => {
   const term = req.params.term;
   const cityId = req.params.cityId;
-  console.log(term);
-  request(
-    "https://developers.zomato.com/api/v2.1/search",
-    {
-      json: true,
-      qs: {
-        entity_id: cityId,
-        entity_type: city,
-        q: term
-      }
-    },
-    function(err, response, body) {
-      if (!err && response.statusCode === 200) {
-        console.log("searching for restaurants!");
-        return res.json({ response });
-      } else {
-        console.log(err);
-        res.status(400).json(err);
-      }
-    }
-  );
+  //external api function call and response
+  let searchReq = getFromZomato(term, cityId);
+
+  //get the data from the first api call
+  searchReq.on('end', function (item) {
+      res.json(item);
+  });
+
+  //error handling
+  searchReq.on('error', function (code) {
+      res.sendStatus(code);
+  });
 });
 
 module.exports = { app, runServer, closeServer };
