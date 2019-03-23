@@ -470,6 +470,7 @@ app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
 app.get('/search/:term/:cityId', (req, res) => {
   const term = req.params.term;
   const cityId = req.params.cityId;
+  console.log(term, cityId);
   //external api function call and response
   let searchReq = getFromZomato(term, cityId);
 
