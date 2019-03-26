@@ -487,17 +487,13 @@ app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
 app.get('/search/:cityId/:term', (req, res) => {
   const term = req.params.term;
   const cityId = req.params.cityId;
-  console.log(term, cityId);
+  console.log("term=", term, "cityId=", cityId);
   //external api function call and response
   let searchReq = getFromZomatoAxios(cityId, term);
 
   searchReq.then(function(response) {
     return res.json(response.data.restaurants);
   });
-
-  searchReq.on('error', function (code) {
-    res.sendStatus(code);
-  })
 });
 
 //Gets restaurant info for a selected restaurant from search results
