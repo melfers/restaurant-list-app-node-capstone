@@ -17,6 +17,7 @@ const unirest = require('unirest');
 const https = require('https');
 const http = require('http');
 const events = require('events');
+const axios = require('axios');
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -68,7 +69,7 @@ if (require.main === module) {
 }
 
 // external API call for user search
-var getFromZomato = function (cityId, term) {
+/*var getFromZomato = function (cityId, term) {
   var emitter = new events.EventEmitter();
   //https://developers.zomato.com/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}
   var options = {
@@ -93,6 +94,20 @@ var getFromZomato = function (cityId, term) {
       emitter.emit('error', e);
   });
   return emitter;
+};*/
+
+var getFromZomatoAxios = function(cityId, term) {
+  let url = `https://developers.zomato.com/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}`;
+
+  return axios.get(url, {
+    headers: {
+      'Authorization': "2ec54e7675164eec06fdfa23d608c529",
+      'Content-Type': "application/json",
+      'Port': 443,
+      'User-Agent': 'Paw/3.1.2 (Macintosh; OS X/10.12.5) GCDHTTPRequest',
+      'user-key': '2ec54e7675164eec06fdfa23d608c529'
+    }
+  });
 };
 
 // external API call for pulling single restaurant info
@@ -496,12 +511,12 @@ app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
 
 //----------Search Endpoint----------
 //Gets search results from user query
-app.get('/search/:term/:cityId', (req, res) => {
+/*app.get('/search/:cityId/:term', (req, res) => {
   const term = req.params.term;
   const cityId = req.params.cityId;
-  console.log(term, cityId);
+  console.log(cityId, term);
   //external api function call and response
-  let searchReq = getFromZomato(term, cityId);
+  let searchReq = getFromZomato(cityId, term);
 
   //get the data from the first api call
   searchReq.on('end', function (item) {
@@ -511,6 +526,18 @@ app.get('/search/:term/:cityId', (req, res) => {
   //error handling
   searchReq.on('error', function (code) {
       res.sendStatus(code);
+  });
+});*/
+
+app.get('/search/:term/:cityId', (req, res) => {
+  const term = req.params.term;
+  const cityId = req.params.cityId;
+  console.log(term, cityId);
+  //external api function call and response
+  let searchReq = getFromZomatoAxios(cityId, term);
+
+  searchReq.then(function(response) {
+    return res.json(response.data.restaurants);
   });
 });
 
