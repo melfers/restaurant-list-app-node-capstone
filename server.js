@@ -69,33 +69,6 @@ if (require.main === module) {
 }
 
 // external API call for user search
-/*var getFromZomato = function (cityId, term) {
-  var emitter = new events.EventEmitter();
-  //https://developers.zomato.com/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}
-  var options = {
-      host: 'developers.zomato.com',
-      path: `/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}`,
-      method: 'GET',
-      headers: {
-          'Authorization': "2ec54e7675164eec06fdfa23d608c529",
-          'Content-Type': "application/json",
-          'Port': 443,
-          'User-Agent': 'Paw/3.1.2 (Macintosh; OS X/10.12.5) GCDHTTPRequest',
-          'user-key': '2ec54e7675164eec06fdfa23d608c529'
-      }
-  };
-
-  https.get(options, function (res) {
-      res.on('data', function (chunk) {
-        let jsonFormattedResults = JSON.parse(chunk);
-        emitter.emit('end', jsonFormattedResults);
-      });
-  }).on('error', function (e) {
-      emitter.emit('error', e);
-  });
-  return emitter;
-};*/
-
 var getFromZomatoAxios = function(cityId, term) {
   let url = `https://developers.zomato.com/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}`;
 
@@ -511,25 +484,7 @@ app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
 
 //----------Search Endpoint----------
 //Gets search results from user query
-/*app.get('/search/:cityId/:term', (req, res) => {
-  const term = req.params.term;
-  const cityId = req.params.cityId;
-  console.log(cityId, term);
-  //external api function call and response
-  let searchReq = getFromZomato(cityId, term);
-
-  //get the data from the first api call
-  searchReq.on('end', function (item) {
-      res.json(item);
-  });
-
-  //error handling
-  searchReq.on('error', function (code) {
-      res.sendStatus(code);
-  });
-});*/
-
-app.get('/search/:term/:cityId', (req, res) => {
+app.get('/search/:cityId/:term', (req, res) => {
   const term = req.params.term;
   const cityId = req.params.cityId;
   console.log(term, cityId);
@@ -539,6 +494,10 @@ app.get('/search/:term/:cityId', (req, res) => {
   searchReq.then(function(response) {
     return res.json(response.data.restaurants);
   });
+
+  searchReq.on('error', function (code) {
+    res.sendStatus(code);
+  })
 });
 
 //Gets restaurant info for a selected restaurant from search results
