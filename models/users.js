@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     const hash = await bcrypt.hash(this.password, 10);
     this.password = hash;
     next();
-});
+}); */
   
 userSchema.methods.serialize = function () {
     return {
@@ -36,13 +36,6 @@ userSchema.methods.serialize = function () {
       name: this.name
     };
 };
-  
-userSchema.methods.validatePassword = async function (password) {
-      const user = this;
-      console.log(await bcrypt.hash(password, 10), user.password);
-      const isMatch = await bcrypt.compare(password, user.password);
-      return isMatch;
-};*/
 
 userSchema.methods.validatePassword = function(password, callback) {
     bcrypt.compare(password, this.password, (err, isValid) => {

@@ -115,74 +115,38 @@ var pullRestaurantInfo = function (restId) {
 
 //Existing user Login
 app.post('/auth/login', (req, res) => {
-  //console.log(req.body.email, req.body.password);
+  console.log('user login initiated');
   User 
     .findOne({
       email: req.body.email
-    }, function(err, items) {
+    }, function(err, user) {
       if (err) {
         return res.status(500).json({
           message: 'Internal server error'
         });
       }
-      if (!items) {
+      if (!user) {
         //bad email
         console.log('bad email');
         return res.status(401).json({
           message: "User not found"
         });
-      } else {/*
-        items.validatePassword(req.body.password)
-        .then(function(isValid) {
-          console.log(isValid);
-          if (!isValid) {
-            return res.status(401).json({
-              message: 'Not found'
-            });
-          } else {
-            console.log('Login successful!');
-            return res.json(items);
-          }
-        });
-      */
-     items.validatePassword(req.body.password, function(err, isValid) {
-      console.log(isValid, err);
-      if (err) {
+      }
+      user.validatePassword(req.body.password, function(err) {  
+        console.log(isValid, err);
+        if (err) {
           console.log('There was an error validating email or password.');
-      }
-      /*if (!isValid) {
-          return res.status(401).json({
-              message: "Is not valid"
-          });*/
-      else {
+        }
+        else {
           console.log("user logged in successfully");
-          return res.json(items);
-      }
-  });
-    };
+          const body = user.serialize();
+          // Generate jwt with the contents of user object
+          const token = jwt.sign(body, JWT_SECRET);
+          return res.json({ token });
+        }
+      });
     });
 });
-/*
-app.post("/auth/login", function(req, res, next) {
-  passport.authenticate("login", { session: false }, (err, user, info) => {
-    console.log(user);
-    if (err || !user) {
-      res.statusMessage = info.message;
-      return res.status(400).json(res.statusMessage);
-    }
-
-    req.login(user, { session: false }, err => {
-      if (err) {
-        res.status(400).json(err);
-      }
-
-      const body = user.serialize();
-      // Generate jwt with the contents of user object
-      const token = jwt.sign(body, JWT_SECRET);
-      return res.json({ token });
-    });
-  })(req, res);
-});*/
 
 //Create new user on signup
 app.post('/auth/signup', (req, res) => {
