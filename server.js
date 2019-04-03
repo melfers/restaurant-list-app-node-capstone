@@ -132,8 +132,7 @@ app.post('/auth/login', (req, res) => {
           message: "User not found"
         });
       }
-      user.validatePassword(req.body.password, function(err) {  
-        console.log(isValid, err);
+      user.validatePassword(req.body.password, function(err) { 
         if (err) {
           console.log('There was an error validating email or password.');
         }
@@ -364,17 +363,18 @@ app.get('/lists/user/listname/:listId/:restaurantId', (req, res) => {
 });
 
 //Add a restaurant to a list
-app.post('/search/:restaurantName/addToList', (req, res) => {
-  let name = req.params.name;
-  let list = req.params.listId;
+app.post('/list/add/:selectedList/:currentRestaurant', (req, res) => {
+  let restaurantInfo = req.body.restaurantInfo;
+  let listId = req.body.listId;
+  let notes = req.body.notes
 
-  console.log(name, list);
+  console.log(restaurantInfo, listId);
 
   Restaurant
     .create({
-      user,
-      name,
-      description
+      listId,
+      restaurantInfo, 
+      notes
     }, (err, item) => {
       if(err) {
         return res.status(500).json({
@@ -382,7 +382,7 @@ app.post('/search/:restaurantName/addToList', (req, res) => {
         });
       }
       if (item) {
-        console.log(`Created a new List named ${name} to ${user}'s account`);
+        console.log(`Restaurant added to list`);
         return res.json(item);
       }
     });
