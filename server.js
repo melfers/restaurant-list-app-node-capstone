@@ -326,16 +326,17 @@ app.delete('/lists/user/delete/:listId', (req, res) => {
 //----------Restaurant Endpoints----------
 
 //Get individual list of restaurants
-app.get('/user/singleList/:userId/:listId', (req, res) => {
+app.get('/singleList/:listId', (req, res) => {
   console.log(req.params.listId);
   Restaurant
     .find({listId: req.params.listId})
     .then(restaurants => {
         console.log(restaurants);
         let listOutput = [];
-        lists.map(list => {
+        restaurants.map(restaurant => {
           listOutput.push(restaurant);
         });
+        console.log(listOutput);
         res.json(listOutput);
       })
     .catch(err => {
@@ -368,13 +369,16 @@ app.post('/list/add/:selectedList/:currentRestaurant', (req, res) => {
   let listId = req.body.listId;
   let notes = req.body.notes
 
-  console.log(restaurantInfo, listId);
+  console.log(restaurantInfo);
 
   Restaurant
     .create({
       listId,
-      restaurantInfo, 
-      notes
+      name: restaurantInfo.name, 
+      featured_image: restaurantInfo.featured_image,
+      location: restaurantInfo.location, 
+      cuisines: restaurantInfo.cuisines,
+      userNotes: notes
     }, (err, item) => {
       if(err) {
         return res.status(500).json({
