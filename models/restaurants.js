@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 const restaurantSchema = mongoose.Schema({
     listId: String,
+    listName: String,
     name: String,
     featured_image: String,
     location: {

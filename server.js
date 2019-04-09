@@ -255,12 +255,12 @@ app.get('/lists/user/:id', (req, res) => {
 });
 
 //Verify no list exists with input name
-app.get('/lists/user/addList/verify/:user/:name', (req, res) => {
-  console.log(req.params.user, req.params.name);
+app.get('/addList/verify/:user', (req, res) => {
+  console.log(req.params.user, req.body.name);
   List
     .findOne({
       user: req.params.user,
-      name: req.params.name
+      name: req.body.name
     })
     .then(result => {
       console.log(result);
@@ -304,17 +304,25 @@ app.post('/user/add/list', (req, res) => {
 });
 
 //Delete a list
-app.delete('/lists/user/delete/:listId', (req, res) => {
+app.delete('/deleteList/:listId', (req, res) => {
   console.log(req.params.listId);
   List
     .findOneAndDelete({
-      user: req.params.user,
       _id: req.params.listId
     })
     .then(() => {
       console.log(`${req.params.listId} was deleted`);
       res.status(204).json({ message: `${req.params.listId} was deleted`});
     })
+    /*.then(() => {
+      Restaurant
+        .deleteMany({
+          listId: req.params.listId
+        })
+    })
+    .then(() => {
+      res.status(204).json({ message: `${req.params.listId} was deleted`});
+    })*/
     .catch(err => {
       console.error(err);
       res.status(500).json({
@@ -346,16 +354,15 @@ app.get('/singleList/:listId', (req, res) => {
 });
 
 //View individual restaurant info from list
-app.get('/lists/user/listname/:listId/:restaurantId', (req, res) => {
+app.get('/restaurant/:restaurantId', (req, res) => {
   console.log(req.params.restaurantId);
   Restaurant
     .findOne({
-      listId: req.params.listId,
       _id: req.params.restaurantId
     })
     .then(restaurant => {
       console.log(restaurant);
-      res.json(estaurant);
+      res.json(restaurant);
     })
     .catch(err => {
       console.err(err);
@@ -366,6 +373,7 @@ app.get('/lists/user/listname/:listId/:restaurantId', (req, res) => {
 //Add a restaurant to a list
 app.post('/list/add/:selectedList/:currentRestaurant', (req, res) => {
   let restaurantInfo = req.body.restaurantInfo;
+  let listName = req.body.listName;
   let listId = req.body.listId;
   let notes = req.body.notes
 
@@ -374,6 +382,7 @@ app.post('/list/add/:selectedList/:currentRestaurant', (req, res) => {
   Restaurant
     .create({
       listId,
+      listName,
       name: restaurantInfo.name, 
       featured_image: restaurantInfo.featured_image,
       location: restaurantInfo.location, 
