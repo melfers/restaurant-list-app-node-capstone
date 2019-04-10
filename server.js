@@ -385,6 +385,7 @@ app.post('/list/add/:selectedList/:currentRestaurant', (req, res) => {
       listName,
       name: restaurantInfo.name, 
       featured_image: restaurantInfo.featured_image,
+      thumb: restaurantInfo.thumb,
       location: restaurantInfo.location, 
       cuisines: restaurantInfo.cuisines,
       userNotes: notes
@@ -440,7 +441,7 @@ app.put('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
 });
 
 //Remove an individual restaurant from a list
-app.delete('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
+app.delete('/restaurant/delete/:restaurantId', (req, res) => {
   console.log(req.params.restaurantId);
 
   Restaurant

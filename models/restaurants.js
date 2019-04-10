@@ -7,6 +7,7 @@ const restaurantSchema = mongoose.Schema({
     listName: String,
     name: String,
     featured_image: String,
+    thumb: String,
     location: {
         address: String,
         locality: String
