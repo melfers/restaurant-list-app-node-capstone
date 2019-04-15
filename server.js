@@ -33,43 +33,43 @@ let server;
 //starts server and returns a Promise.
 function runServer(databaseUrl, port = PORT) {
 
+  return new Promise((resolve, reject) => {
+    mongoose.connect(databaseUrl, err => {
+      if (err) {
+        return reject(err);
+      }
+      server = app.listen(port, () => {
+        console.log(`Your app is listening on port ${port}`);
+        resolve();
+      })
+        .on('error', err => {
+          mongoose.disconnect();
+          reject(err);
+        });
+    });
+  });
+}
+
+function closeServer() {
+  return mongoose.disconnect().then(() => {
     return new Promise((resolve, reject) => {
-      mongoose.connect(databaseUrl, err => {
+      console.log('Closing server');
+      server.close(err => {
         if (err) {
           return reject(err);
         }
-        server = app.listen(port, () => {
-          console.log(`Your app is listening on port ${port}`);
-          resolve();
-        })
-          .on('error', err => {
-            mongoose.disconnect();
-            reject(err);
-          });
+        resolve();
       });
     });
-  }
-
-function closeServer() {
-    return mongoose.disconnect().then(() => {
-      return new Promise((resolve, reject) => {
-        console.log('Closing server');
-        server.close(err => {
-          if (err) {
-            return reject(err);
-          }
-          resolve();
-        });
-      });
-    });
-  }
+  });
+}
 
 if (require.main === module) {
   runServer(DATABASE_URL).catch(err => console.error(err));
 }
 
 // external API call for user search
-var getFromZomatoAxios = function(cityId, term) {
+var getFromZomatoAxios = function (cityId, term) {
   let url = `https://developers.zomato.com/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}`;
 
   return axios.get(url, {
@@ -88,25 +88,25 @@ var pullRestaurantInfo = function (restId) {
   var emitter = new events.EventEmitter();
   //https://developers.zomato.com/api/v2.1/search?entity_id=${cityId}&entity_type=city&q=${term}
   var options = {
-      host: 'developers.zomato.com',
-      path: `/api/v2.1/restaurant?res_id=${restId}`,
-      method: 'GET',
-      headers: {
-          'Authorization': "2ec54e7675164eec06fdfa23d608c529",
-          'Content-Type': "application/json",
-          'Port': 443,
-          'User-Agent': 'Paw/3.1.2 (Macintosh; OS X/10.12.5) GCDHTTPRequest',
-          'user-key': '2ec54e7675164eec06fdfa23d608c529'
-      }
+    host: 'developers.zomato.com',
+    path: `/api/v2.1/restaurant?res_id=${restId}`,
+    method: 'GET',
+    headers: {
+      'Authorization': "2ec54e7675164eec06fdfa23d608c529",
+      'Content-Type': "application/json",
+      'Port': 443,
+      'User-Agent': 'Paw/3.1.2 (Macintosh; OS X/10.12.5) GCDHTTPRequest',
+      'user-key': '2ec54e7675164eec06fdfa23d608c529'
+    }
   };
 
   https.get(options, function (res) {
-      res.on('data', function (chunk) {
-        let jsonFormattedResults = JSON.parse(chunk);
-        emitter.emit('end', jsonFormattedResults);
-      });
+    res.on('data', function (chunk) {
+      let jsonFormattedResults = JSON.parse(chunk);
+      emitter.emit('end', jsonFormattedResults);
+    });
   }).on('error', function (e) {
-      emitter.emit('error', e);
+    emitter.emit('error', e);
   });
   return emitter;
 };
@@ -116,10 +116,10 @@ var pullRestaurantInfo = function (restId) {
 //Existing user Login
 app.post('/auth/login', (req, res) => {
   console.log('user login initiated');
-  User 
+  User
     .findOne({
       email: req.body.email
-    }, function(err, user) {
+    }, function (err, user) {
       if (err) {
         return res.status(500).json({
           message: 'Internal server error'
@@ -132,7 +132,7 @@ app.post('/auth/login', (req, res) => {
           message: "User not found"
         });
       }
-      user.validatePassword(req.body.password, function(err) { 
+      user.validatePassword(req.body.password, function (err) {
         if (err) {
           console.log('There was an error validating email or password.');
         }
@@ -149,6 +149,7 @@ app.post('/auth/login', (req, res) => {
 
 //Create new user on signup
 app.post('/auth/signup', (req, res) => {
+  console.log('152');
   let name = req.body.name;
   let email = req.body.email;
   let password = req.body.password;
@@ -158,46 +159,49 @@ app.post('/auth/signup', (req, res) => {
 
   //Create encryption key
   bcrypt.genSalt(10, (err, salt) => {
-      if (err) {
-          return res.status(500).json({
-              message: 'Encryption key creation failed'
-          });
-      }
-      //encrypt password using key 
-      bcrypt.hash(password, salt, (err, hash) => {
-          if (err) {
-              return res.status(500).json({
-                  message: 'Password encryption failed'
-              });
-          }
-          User.create({
-              name,
-              email,
-              password: hash
-          }, (err, user) => {
-              if (err) {
-                  return res.status(500).json({
-                      message: 'Create new user failed'
-                  });
-              }
-              if (user) {
-                console.log(user);
-                /*const body = user.serialize();
-                // Generate jwt with the contents of user object
-                const token = jwt.sign(body, JWT_SECRET);
-                return res.json({ token });*/
-                return res.json(user);
-              }
-          });
+    if (err) {
+      console.log('163');
+      return res.status(500).json({
+        message: 'Encryption key creation failed'
       });
+    }
+    //encrypt password using key 
+    bcrypt.hash(password, salt, (err, hash) => {
+      if (err) {
+        console.log('171');
+        return res.status(500).json({
+          message: 'Password encryption failed'
+        });
+      }
+      User.create({
+        name,
+        email,
+        password: hash
+      }, (err, user) => {
+        if (err) {
+          console.log('182');
+          return res.status(500).json({
+            message: 'Create new user failed'
+          });
+        }
+        if (user) {
+          console.log('188', user);
+          const body = user.serialize();
+          // Generate jwt with the contents of user object
+          const token = jwt.sign(body, JWT_SECRET);
+          return res.json({ token });
+          //return res.json(user);
+        }
+      });
+    });
   });
 });
 
 //For persisting user login
-app.get("/auth/userLoggedIn", function(req, res) {
+app.get("/auth/userLoggedIn", function (req, res) {
   Logged.find({})
     .then(users => {
-      res.json({loggedIn: users});
+      res.json({ loggedIn: users });
     })
     .catch(err => {
       return res.status(400).json(res.statusMessage);
@@ -209,28 +213,28 @@ app.post("/auth/userLoggedIn", (req, res) => {
   Logged.create({
     usersLoggedIn: req.body.user
   })
-  .then(user => {
-    Logged.find({})
-      .then(users => {
-        res.json({loggedIn: users});
-      });
-  })
-  .catch(err => {
-    return res.status(400).json(res.statusMessage);
-  });
+    .then(user => {
+      Logged.find({})
+        .then(users => {
+          res.json({ loggedIn: users });
+        });
+    })
+    .catch(err => {
+      return res.status(400).json(res.statusMessage);
+    });
 });
 
-app.delete("/auth/userLoggedIn", function(req, res) {
+app.delete("/auth/userLoggedIn", function (req, res) {
   console.log(req.body.user);
   Logged.deleteMany({
     usersLoggedIn: req.body.user
   })
-  .then(user => {
-    console.log(`Deleted ${user}!`);
-  })
-  .catch(err => {
-    return res.status(400).json(res.statusMessage);
-  });
+    .then(user => {
+      console.log(`Deleted ${user}!`);
+    })
+    .catch(err => {
+      return res.status(400).json(res.statusMessage);
+    });
 });
 
 //----------List Endpoints----------
@@ -239,18 +243,18 @@ app.delete("/auth/userLoggedIn", function(req, res) {
 app.get('/lists/user/:id', (req, res) => {
   console.log(req.params.id);
   List
-    .find({user: req.params.id})
+    .find({ user: req.params.id })
     .then(lists => {
-        console.log(lists);
-        let listOutput = [];
-        lists.map(list => {
-          listOutput.push(list);
-        });
-        res.json(listOutput);
-      })
+      console.log(lists);
+      let listOutput = [];
+      lists.map(list => {
+        listOutput.push(list);
+      });
+      res.json(listOutput);
+    })
     .catch(err => {
       console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
+      res.status(500).json({ error: 'Something went wrong' });
     });
 });
 
@@ -264,11 +268,11 @@ app.get('/addList/verify/:user', (req, res) => {
     })
     .then(result => {
       console.log(result);
-      res.json({result});
-      })
+      res.json({ result });
+    })
     .catch(err => {
       console.log(err);
-      res.status(500).json({ error: 'Something went wrong'});
+      res.status(500).json({ error: 'Something went wrong' });
     });
 })
 
@@ -283,7 +287,7 @@ app.post('/user/add/list', (req, res) => {
     req.body.user,
     req.body.name,
     req.body.description
-    );
+  );
 
   List
     .create({
@@ -291,7 +295,7 @@ app.post('/user/add/list', (req, res) => {
       name,
       description
     }, (err, item) => {
-      if(err) {
+      if (err) {
         return res.status(500).json({
           message: 'Internal server error'
         });
@@ -312,7 +316,7 @@ app.delete('/deleteList/:listId', (req, res) => {
     })
     .then(() => {
       console.log(`${req.params.listId} was deleted`);
-      res.status(204).json({ message: `${req.params.listId} was deleted`});
+      res.status(204).json({ message: `${req.params.listId} was deleted` });
     })
     /*.then(() => {
       Restaurant
@@ -337,19 +341,19 @@ app.delete('/deleteList/:listId', (req, res) => {
 app.get('/singleList/:listId', (req, res) => {
   console.log(req.params.listId);
   Restaurant
-    .find({listId: req.params.listId})
+    .find({ listId: req.params.listId })
     .then(restaurants => {
-        console.log(restaurants);
-        let listOutput = [];
-        restaurants.map(restaurant => {
-          listOutput.push(restaurant);
-        });
-        console.log(listOutput);
-        res.json(listOutput);
-      })
+      console.log(restaurants);
+      let listOutput = [];
+      restaurants.map(restaurant => {
+        listOutput.push(restaurant);
+      });
+      console.log(listOutput);
+      res.json(listOutput);
+    })
     .catch(err => {
       console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
+      res.status(500).json({ error: 'Something went wrong' });
     });
 });
 
@@ -366,7 +370,7 @@ app.get('/restaurant/:restaurantId', (req, res) => {
     })
     .catch(err => {
       console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
+      res.status(500).json({ error: 'Something went wrong' });
     });
 });
 
@@ -383,14 +387,14 @@ app.post('/list/add/:selectedList/:currentRestaurant', (req, res) => {
     .create({
       listId,
       listName,
-      name: restaurantInfo.name, 
+      name: restaurantInfo.name,
       featured_image: restaurantInfo.featured_image,
       thumb: restaurantInfo.thumb,
-      location: restaurantInfo.location, 
+      location: restaurantInfo.location,
       cuisines: restaurantInfo.cuisines,
       userNotes: notes
     }, (err, item) => {
-      if(err) {
+      if (err) {
         return res.status(500).json({
           message: 'Internal server error'
         });
@@ -416,7 +420,7 @@ app.get('/search/:restaurantName', (req, res) => {
     })
     .catch(err => {
       console.err(err);
-      res.status(500).json({ error: 'Something went wrong'});
+      res.status(500).json({ error: 'Something went wrong' });
     });
 });
 
@@ -425,19 +429,20 @@ app.put('/lists/user/listname/:id/:restaurantId/edit', (req, res) => {
   console.log(req.params.restaurantId, req.body.userNotes);
 
   Restaurant
-  .update({
-    _id: req.params.restaurantId
-  }, { $set: { 
-      userNotes: req.body.userNotes
-    }
-  })
+    .update({
+      _id: req.params.restaurantId
+    }, {
+        $set: {
+          userNotes: req.body.userNotes
+        }
+      })
     .then(updatedRestaurant => {
       res.status(200).json({
         _id: updatedRestaurant._id,
         userNotes: updatedRestaurant.userNotes
       });
     })
-    .catch(err => res.status(500).json({ message: err}));
+    .catch(err => res.status(500).json({ message: err }));
 });
 
 //Remove an individual restaurant from a list
@@ -450,7 +455,7 @@ app.delete('/restaurant/delete/:restaurantId', (req, res) => {
     })
     .then(() => {
       console.log(`${req.params.restaurantId} was deleted`);
-      res.status(204).json({ message: `${req.params.restaurantId} was deleted`});
+      res.status(204).json({ message: `${req.params.restaurantId} was deleted` });
     })
     .catch(err => {
       console.error(err);
@@ -469,7 +474,7 @@ app.get('/search/:cityId/:term', (req, res) => {
   //external api function call and response
   let searchReq = getFromZomatoAxios(cityId, term);
 
-  searchReq.then(function(response) {
+  searchReq.then(function (response) {
     return res.json(response.data.restaurants);
   });
 });
@@ -483,12 +488,12 @@ app.get('/singleRestaurant/:id', (req, res) => {
 
   //get the data from the first api call
   searchReq.on('end', function (item) {
-      res.json(item);
+    res.json(item);
   });
 
   //error handling
   searchReq.on('error', function (code) {
-      res.sendStatus(code);
+    res.sendStatus(code);
   });
 });
 
