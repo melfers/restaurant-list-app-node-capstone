@@ -103,12 +103,12 @@ var pullRestaurantInfo = function(restId) {
     .get(options, function(res) {
       let data = "";
 
-      resp.on("data", chunk => {
+      res.on("data", chunk => {
         data += chunk;
       });
 
       // The whole response has been received. Print out the result.
-      resp.on("end", () => {
+      res.on("end", () => {
         let jsonFormattedResults = JSON.parse(data);
         emitter.emit("end", jsonFormattedResults);
       });
