@@ -16,7 +16,7 @@
     "jwt-decode": "^2.2.0",
     "mocha": "^5.2.0",
     "moment": "^2.23.0",
-    "mongoose": "^5.4.2",
+    "mongoose": "^5.7.5",
     "morgan": "^1.9.1",
     "passport": "^0.4.0",
     "passport-http": "^0.3.0",
